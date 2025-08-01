@@ -96,8 +96,8 @@ for i in range(sind,sind+1):
 
     # read in the clmaped ct gradient data    
     print('reading ct grad')
-    ct_masked = pv.read(osj('/home/pandu/Panresearch/PPP_surrogate_model/UQ_Sample_2024_7_3', 'sample{:d}_masked.vti'.format(rid)))
-    ct_grad = pv.read(osj('/home/pandu/Panresearch/PPP_surrogate_model/UQ_Sample_2024_7_3', 'sample{:d}_masked_grad.vti'.format(rid)))
+    ct_masked = pv.read(osj('../Data/CT_0063_UQ_voxel_prediction', 'sample{:d}_masked.vti'.format(rid)))
+    ct_grad = pv.read(osj('../Data/CT_0063_UQ_voxel_prediction', 'sample{:d}_masked_grad.vti'.format(rid)))
     print('reading ct grad done')
     ct_shape_inv = np.flip(ct.dimensions)
     ct_masked_ts = torch.tensor(np.transpose(ct_masked.point_data['masked'].reshape(ct_shape_inv),(2,1,0)),dtype = torch.float32).unsqueeze(0).unsqueeze(-1)
