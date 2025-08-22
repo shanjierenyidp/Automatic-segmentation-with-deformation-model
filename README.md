@@ -11,6 +11,8 @@ For voxel segmentation, we use LoGBNet. Please refer to the original repository:
 An et al., *"Hierarchical LoG Bayesian Neural Network for Enhanced Aorta Segmentation,"* ISBI 2025.
 
 ## 🔹 GNN-LDDMM Deformation
+python environment recreation: 
+conda env create -f environment.txt
 
 For the GNN-LDDMM deformation model:
 
