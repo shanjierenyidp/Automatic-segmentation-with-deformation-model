@@ -30,7 +30,7 @@ device = torch.device("cuda:0")
 
 device = torch.device("cuda:0")
 ## read in filename list of the data
-postprocess_path = "../Data/CT_data"
+postprocess_path = "../Data/processed"
 
 file_name_list = os.listdir(osj(postprocess_path,'npys'))
 file_name_list = sorted(file_name_list, key=lambda x:float(re.findall("(\d+)",x)[0]))
@@ -48,13 +48,13 @@ bcptids_edge_all = [torch.tensor([25012,  28941, 26388, 868, 68, 20655], device=
                     ] # you will have to hand pick those point ids from the edge of the inlet/outlets
 
 original_path = "../Data/original"
-result_path = "./results/experiement1"
+result_path = "./results"
 
 sind = 0 # 0,1 
 sids = [63,68]
 
 output_path = osj(result_path,'GNN_LDDMM_id00{:d}_exp1_deform'.format(sids[sind])) # ratio 0.2 lr 1e-3 normal 1  capratio1.2, ablation: no scale
-src_filename = [osj(result_path,'GNN_LDDMM_id00{:d}_exp1_deform'.format(sids[sind])),'mesh_3000.ply']
+src_filename = [osj(result_path,'GNN_LDDMM_id00{:d}_exp1'.format(sids[sind])),'mesh_3000.ply']
 
 src_filename_copy = osj(output_path,src_filename[-1])
 if ose(output_path):
@@ -81,7 +81,7 @@ ct = pv.read(osj(original_path,
                     'Images',temp_ct_name))
 
 #taking out the gradient in the last channel and added batch channel and channel axis. 
-ct_grad_ts = torch.load(osj(postprocess_path,'ct_gradients_new',file_name_list[i][:-4]+'processed_gradient.pt')).unsqueeze(0)
+ct_grad_ts = torch.load(osj(postprocess_path,'ct_gradients',file_name_list[i][:-4]+'processed_gradient.pt')).unsqueeze(0)
 ct_grad_ts = ct_grad_ts.to(device)
 print(ct_grad_ts.shape)
 
@@ -210,15 +210,18 @@ for j in tqdm(range(Niter+1)):
     loss_e = -torch.log(new_e) - (-torch.log(e0))
     e_losses.append(loss_e)
 
-    # print(loss_e)
+    print(loss_e)
     loss_edge = mesh_edge_loss(new_src_mesh)#; print('edge:',loss_edge)
     edge_losses.append(loss_edge)
+    # print(loss_edge)
 
     loss_normal = mesh_normal_consistency(new_src_mesh)#; print('normal:',loss_normal)
     normal_losses.append(loss_normal)
+    # print(loss_normal)
 
     loss_laplacian = mesh_laplacian_smoothing(new_src_mesh, method="uniform")#; print('laplacian:',loss_laplacian)
     laplacian_losses.append(loss_laplacian)
+    # print(loss_laplacian)
     
     loss = w_e*loss_e + w_edge*loss_edge + w_normal*loss_normal+w_laplacian*loss_laplacian
     loss.backward()
@@ -289,3 +292,4 @@ for j in tqdm(range(Niter+1)):
         torch.save(torch.stack(my_deform.template_pts_t),osj(output_path,'lddmm_control_points.pt'))
         print('saving animations done')
 
+# CUDA_VISIBLE_DEVICES=1 python GNN-LDDMM_deform.py

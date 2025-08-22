@@ -28,7 +28,7 @@ pylab.rcParams.update(params)
 
 device = torch.device("cuda:0")
 ## read in filename list of the data
-postprocess_path = "../Data/CT_data"
+postprocess_path = "../Data/processed"
 
 file_name_list = os.listdir(osj(postprocess_path,'npys'))
 file_name_list = sorted(file_name_list, key=lambda x:float(re.findall("(\d+)",x)[0]))
@@ -36,7 +36,7 @@ N = len(file_name_list); print('total num of data:',N)
 # print(file_name_list)
 
 original_path = "../Data/original"
-result_path = "./results/experiement1"
+result_path = "./results"
 sind = 0 # 0,1 
 sids = [63,68]
 sidstrs = ['0063_1001','0068_0001']
@@ -111,7 +111,6 @@ initial_verts = src_mesh.verts_packed()
 initial_edges = src_mesh.edges_packed().T
 criterion = nn.MSELoss()
 
-
 for j in tqdm(range(Niter+1)): # iteratively smooth the surface 
     optimizer.zero_grad()
     new_src_mesh = src_mesh.offset_verts(deform_verts)
@@ -119,7 +118,7 @@ for j in tqdm(range(Niter+1)): # iteratively smooth the surface
         save_ply(osj(output_path,'mesh_init.ply'.format(j)), 
                     xyz2hat.denormalize(new_src_mesh.verts_packed()), new_src_mesh.faces_packed())
 
-    new_e = get_e(xyz2hat.denormalize(new_src_mesh.verts_packed()))
+    new_e = get_e(xyz2hat.denormalize(new_src_mesh.verts_packed()), ct_grad_ts, xyz2ind) 
     loss_e = -torch.log(new_e) - (-torch.log(e0))
     e_losses.append(loss_e.item())
         # print(loss_e)

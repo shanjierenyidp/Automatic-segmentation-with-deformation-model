@@ -1,4 +1,8 @@
 import pyacvd
+import numpy as np 
+from scipy.signal import convolve
+
+
 def remesh(mesh, N, subdivide = 3): 
     clus = pyacvd.Clustering(mesh)
     # mesh is not dense enough for uniform remeshing
@@ -48,6 +52,44 @@ def make_tube(centerline_points, tube_radius, N = 100):
     centerline = pv.Spline(centerline_points, N)
     tube_mesh = centerline.tube(radius=tube_radius)
     return tube_mesh
+
+
+def gradient_sobel(image):
+    image = image.detach().cpu().numpy()
+    # kernel_x = np.array([[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
+    #                      [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
+    #                      [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]])
+    # kernel_y = np.array([[[-1, -2, -1], [0, 0, 0], [1, 2, 1]],
+    #                      [[-1, -2, -1], [0, 0, 0], [1, 2, 1]],
+    #                      [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]])
+    # kernel_z = np.array([[[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]],
+    #                      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    #                      [[1, 1, 1], [1, 1, 1], [1, 1, 1]]])
+
+    kernel_x = np.array([[[1, 2, 1], [2, 4, 2], [1, 2, 1]],
+                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                            [[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]]])
+    
+    kernel_y = np.array([[[-1, -2, -1], [0, 0, 0], [1, 2, 1]],
+                            [[-2, -4, -2], [0, 0, 0], [2, 4, 2]],
+                            [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]])
+    
+    kernel_z = np.array([[[1, 0, -1], [2, 0, -2], [1, 0, -1]],
+                            [[2, 0, -2], [4, 0, -4], [2, 0, -2]],
+                            [[1, 0, -1], [2, 0, -2], [1, 0, -1]]])
+
+    grad_x = convolve(image, kernel_x, mode='same')
+    grad_y = convolve(image, kernel_y, mode='same')
+    grad_z = convolve(image, kernel_z, mode='same')
+
+    grad_mag = np.sqrt(grad_x ** 2 + grad_y ** 2 + grad_z ** 2)
+    grad_dir = np.arctan2(grad_y, grad_x)
+
+    grad_x, grad_y, grad_z, grad_mag, grad_dir = torch.from_numpy(grad_x), torch.from_numpy(
+        grad_y), torch.from_numpy(grad_z), torch.from_numpy(grad_mag), torch.from_numpy(grad_dir)
+
+    grad_mag = (grad_mag - grad_mag.min()) / (grad_mag.max() - grad_mag.min())
+    return grad_x, grad_y, grad_z, grad_mag, grad_dir
 
 
 

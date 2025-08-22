@@ -29,7 +29,7 @@ pylab.rcParams.update(params)
 
 device = torch.device("cuda:0")
 ## read in filename list of the data
-postprocess_path = "../Data/CT_data"
+postprocess_path = "../Data/processed"
 
 file_name_list = os.listdir(osj(postprocess_path,'npys'))
 file_name_list = sorted(file_name_list, key=lambda x:float(re.findall("(\d+)",x)[0]))
@@ -37,7 +37,7 @@ N = len(file_name_list); print('total num of data:',N)
 # print(file_name_list)
 
 original_path = "../Data/original"
-result_path = "./results/experiement1_deform"
+result_path = "./results"
 
 sind = 0 # 0,1 
 sids = [63,68]

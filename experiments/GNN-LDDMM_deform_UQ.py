@@ -9,7 +9,7 @@ sys.path.insert(1, '../')
 from imageseggnn.mesh_operations.normalizer import *
 from imageseggnn.mesh_operations.transforms import *
 from imageseggnn.mesh_operations.interpolation import *
-from imageseggnn.utils import get_e, create_vtp, load_vtp
+from imageseggnn.utils import get_e, create_vtp, load_vtp, get_std
 import torch 
 from pytorch3d.loss import (
     chamfer_distance, 
@@ -30,14 +30,11 @@ device = torch.device("cuda:0")
 
 
 ## read in filename list of the data
-# postprocess_path = "../Data/result_without_vacum"
-postprocess_path = "../Data/result_without_vacum_0820"
-# ct_processed_path = "../Data/ATNet/test_dataset/input/pytorch_tensor"
+postprocess_path = "../Data/processed"
 file_name_list = os.listdir(osj(postprocess_path,'npys'))
 file_name_list = sorted(file_name_list, key=lambda x:float(re.findall("(\d+)",x)[0]))
 N = len(file_name_list); print('total num of data:',N)
 # print(file_name_list)
-print('debug1')
 # manual selection 
 bcptids_all = [torch.tensor([5050,  7991, 7577,421, 164, 5632], device= device), #0
                 torch.tensor([4900,  7983, 7508,707, 303, 5510], device= device), #1
@@ -62,14 +59,14 @@ bcptids_edge_all = [torch.tensor([2762,  7949, 7543, 573, 38, 5654], device= dev
                     torch.tensor([7276,  7937, 7899, 248, 2, 3974], device= device),] #9
 
 original_path = "../Data/original"
-result_path = "./results/experiement1"
+result_path = "./results"
 
-sind = 0 #
+sind = 0 # the test sample id 
 sids = [63,68]
-rid = 0 # 
+rid = 0 # choose the UQ sample id
 
 output_path = osj(result_path,'GNN_LDDMM_id00{:d}_exp1_deform_UQ_r{:d}'.format(sids[sind], rid)) # ratio 0.4 lr 1e-2 normal 1 
-src_filename = ['../Data/processed/UQ/UQ_{:d}.vtp'.format(rid)]
+src_filename = ['../Data/processed_UQ', 'sample{:d}_remesh_smthed_trimed.vtp'.format(rid)]
 
 src_filename_copy = osj(output_path,src_filename[-1])
 if ose(output_path):
@@ -132,11 +129,6 @@ for i in range(sind,sind+1):
 
     # The optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3,weight_decay=1e-4 )
-
-    def get_std(pts,ct_ts = ct_masked_ts): 
-        inds = xyz2ind.normalize((pts))#; print(inds.shape)
-        values = interpolate(ct_ts, inds.unsqueeze(0))
-        return torch.std(values[0])
 
     e0 = get_e(xyz2hat.denormalize(src_mesh.verts_packed()),ct_grad_ts,xyz2ind) # e0=0.0006   for example 63
 

@@ -13,7 +13,7 @@ def get_e(pts,ct_grad_ts,xyz2ind):
     ub = torch.tensor(ct_grad_ts.shape[1:-1],device = inds.device) -1.5
     inds = torch.clamp(inds,lb,ub)
     values = interpolate(ct_grad_ts, inds.unsqueeze(0))
-    return torch.sum(values)
+    return torch.sum(values[0,:,-1])
 
 def get_ptse(pts,ct_grad_ts,xyz2ind):
     inds = xyz2ind.normalize((pts))#; print(inds.shape)
